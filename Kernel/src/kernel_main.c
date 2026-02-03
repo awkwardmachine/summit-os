@@ -1,5 +1,5 @@
 #include "bootinfo.h"
-#include "framebuffer.h"
+#include "drivers/framebuffer.h"
 
 __attribute__((section(".text.kernel_main")))
 void kernel_main(BootInfo *boot_info) {

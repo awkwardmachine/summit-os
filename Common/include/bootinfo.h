@@ -1,5 +1,5 @@
-#ifndef OS_BOOTINFO_H
-#define OS_BOOTINFO_H
+#ifndef BOOTINFO_H
+#define BOOTINFO_H
 
 typedef struct {
     unsigned int entry_count;

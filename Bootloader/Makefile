@@ -13,7 +13,10 @@ EFI_LIB = /usr/lib
 EFI_INC = /usr/include/efi
 
 # Sources
-SOURCES = $(SRC_DIR)/bootloader.c
+C_SOURCES = $(wildcard $(SRC_DIR)/*.c)
+
+# Objects
+C_OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SOURCES))
 
 # Includes
 INCLUDES = -I$(INC_DIR) \
@@ -43,12 +46,12 @@ LDFLAGS = -nostdlib \
 
 all: $(TARGET)
 
-$(BUILD_DIR)/bootloader.o: $(SOURCES)
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(BUILD_DIR)
 	gcc $(CFLAGS) -c $< -o $@
 
-$(BUILD_DIR)/bootloader.so: $(BUILD_DIR)/bootloader.o
-	ld $< $(EFI_LIB)/crt0-efi-$(ARCH).o $(LDFLAGS) -o $@
+$(BUILD_DIR)/bootloader.so: $(C_OBJECTS)
+	ld $(C_OBJECTS) $(EFI_LIB)/crt0-efi-$(ARCH).o $(LDFLAGS) -o $@
 
 $(TARGET): $(BUILD_DIR)/bootloader.so
 	objcopy -j .text -j .sdata -j .data -j .rodata -j .dynamic \
@@ -56,4 +59,4 @@ $(TARGET): $(BUILD_DIR)/bootloader.so
 	        --target=efi-app-$(ARCH) $< $@
 
 clean:
-	@rm -f $(BUILD_DIR)/bootloader.o $(BUILD_DIR)/bootloader.so $(TARGET)
+	@rm -f $(BUILD_DIR)/*.o $(BUILD_DIR)/*.so $(TARGET)

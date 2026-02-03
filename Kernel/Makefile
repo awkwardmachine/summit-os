@@ -2,6 +2,7 @@ ARCH = x86_64
 
 # Directories
 SRC_DIR = src
+DRIVERS_DIR = drivers
 INC_DIR = include
 ARCH_DIR = arch/$(ARCH)
 BUILD_DIR = ../Build
@@ -10,19 +11,20 @@ BUILD_DIR = ../Build
 TARGET = $(BUILD_DIR)/kernel.bin
 
 # Sources
-C_SOURCES = $(SRC_DIR)/main.c \
-            $(SRC_DIR)/framebuffer.c
+C_SOURCES = $(wildcard $(SRC_DIR)/*.c) \
+            $(wildcard $(DRIVERS_DIR)/*.c)
 
 ASM_SOURCES = $(ARCH_DIR)/boot.S
 
 # Objects
-C_OBJECTS = $(BUILD_DIR)/kernel_main.o \
-            $(BUILD_DIR)/kernel_graphics.o
+C_OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(wildcard $(SRC_DIR)/*.c)) \
+            $(patsubst $(DRIVERS_DIR)/%.c,$(BUILD_DIR)/%.o,$(wildcard $(DRIVERS_DIR)/*.c))
 
-ASM_OBJECTS = $(BUILD_DIR)/kernel_boot.o
+ASM_OBJECTS = $(BUILD_DIR)/boot.o
 
 # Includes
 INCLUDES = -I$(INC_DIR) \
+           -I$(DRIVERS_DIR) \
            -I$(ARCH_DIR)/include \
            -I../Common/include
 
@@ -50,15 +52,15 @@ LDFLAGS = -T kernel.ld \
 
 all: $(TARGET)
 
-$(BUILD_DIR)/kernel_main.o: $(SRC_DIR)/main.c
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(BUILD_DIR)
 	gcc $(CFLAGS) -c $< -o $@
 
-$(BUILD_DIR)/kernel_graphics.o: $(SRC_DIR)/framebuffer.c
+$(BUILD_DIR)/%.o: $(DRIVERS_DIR)/%.c
 	@mkdir -p $(BUILD_DIR)
 	gcc $(CFLAGS) -c $< -o $@
 
-$(BUILD_DIR)/kernel_boot.o: $(ASM_SOURCES)
+$(BUILD_DIR)/boot.o: $(ASM_SOURCES)
 	@mkdir -p $(BUILD_DIR)
 	gcc $(CFLAGS) -c $< -o $@
 
@@ -66,4 +68,4 @@ $(TARGET): $(ASM_OBJECTS) $(C_OBJECTS) kernel.ld
 	ld $(LDFLAGS) $(ASM_OBJECTS) $(C_OBJECTS) -o $@
 
 clean:
-	@rm -f $(C_OBJECTS) $(ASM_OBJECTS) $(TARGET)
+	@rm -f $(BUILD_DIR)/*.o $(TARGET)
